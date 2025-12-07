@@ -7,25 +7,28 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Secret Santa Picker</h1>
+<div class="container">
+  <h1>🎁 Secret Santa Picker</h1>
 
+  <section>
     <h2>1. Add Participants</h2>
-    <input id="nameInput" placeholder="Enter a name" />
-    <button onclick="addName()">Add</button>
-    <ul id="nameList"></ul>
+    <textarea id="bulkNames" placeholder="Enter one name per line"></textarea>
+    <button onclick="bulkAdd()">Add Names</button>
+  </section>
 
-    <h2>2. Add Exclusion Groups</h2>
-    <p>Create groups whose members cannot be matched to each other.</p>
-    <input id="groupInput" placeholder="Group name" />
+  <section>
+    <h2>2. Exclusion Groups</h2>
+    <div id="groups"></div>
+    <input id="newGroupName" placeholder="New group name" />
     <button onclick="addGroup()">Add Group</button>
-    <ul id="groupList"></ul>
+  </section>
 
-    <h2>3. Generate Secret Santa</h2>
-    <button onclick="generateMatches()">Generate</button>
+  <section>
+    <h2>3. Generate Matches</h2>
+    <button onclick="generate()">Generate Secret Santa</button>
     <ul id="results"></ul>
-  </div>
-
+  </section>
+</div>
 <script src="script.js"></script>
 </body>
 </html>
