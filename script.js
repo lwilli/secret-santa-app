@@ -1,6 +1,10 @@
 let names = [];
 let groups = {};
 
+document.getElementById("bulkAddBtn").onclick = bulkAdd;
+document.getElementById("addGroupBtn").onclick = addGroup;
+document.getElementById("generateBtn").onclick = generate;
+
 function bulkAdd() {
   const text = document.getElementById("bulkNames").value.trim();
   if (!text) return;
@@ -18,18 +22,38 @@ function addGroup() {
   renderGroups();
 }
 
+function createUngrouped(parent) {
+  const box = document.createElement("div");
+  box.className = "group-members ungrouped";
+  box.dataset.group = "";
+  parent.prepend(box);
+  return box;
+}
+
 function renderGroups() {
   const container = document.getElementById("groups");
   container.innerHTML = "";
+
+  let ungrouped = createUngrouped(container);
 
   Object.keys(groups).forEach(g => {
     const div = document.createElement("div");
     div.className = "group";
 
     div.innerHTML = `
-      <h3>${g} <button onclick="delete groups['${g}']; renderGroups()">Delete</button></h3>
-      <div class="group-members" data-group="${g}" ondragover="dragOver(event)" ondrop="drop(event, '${g}')"></div>
+      <h3>${g}
+        <button class="delete-group" data-group="${g}">Delete</button>
+      </h3>
+      <div class="group-members"
+           data-group="${g}"
+           ondragover="dragOver(event)"
+           ondrop="drop(event, '${g}')"></div>
     `;
+
+    div.querySelector(".delete-group").onclick = () => {
+      delete groups[g];
+      renderGroups();
+    };
 
     container.appendChild(div);
   });
@@ -42,11 +66,10 @@ function renderGroups() {
     span.id = "member-" + n;
     span.ondragstart = dragStart;
 
-    // place name in group or outside
     const group = Object.keys(groups).find(g => groups[g].includes(n));
     const target = group
-      ? document.querySelector(`.group-members[data-group="${group}"]`)
-      : container;
+      ? container.querySelector(`.group-members[data-group="${group}"]`)
+      : ungrouped;
 
     target.appendChild(span);
   });
@@ -55,12 +78,13 @@ function renderGroups() {
 let dragItem = null;
 function dragStart(e) { dragItem = e.target.textContent; }
 function dragOver(e) { e.preventDefault(); }
+
 function drop(e, groupName) {
   e.preventDefault();
   Object.keys(groups).forEach(g => {
     groups[g] = groups[g].filter(n => n !== dragItem);
   });
-  groups[groupName].push(dragItem);
+  if (groupName) groups[groupName].push(dragItem);
   renderGroups();
 }
 

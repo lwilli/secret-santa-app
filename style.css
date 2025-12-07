@@ -27,11 +27,6 @@ textarea {
   padding: 10px;
   background: #f9f9f9;
 }
-.group h3 {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 .group-members {
   min-height: 40px;
   padding: 8px;
@@ -45,4 +40,8 @@ textarea {
   border-radius: 4px;
   display: inline-block;
   cursor: grab;
+}
+.ungrouped {
+  margin-bottom: 20px;
+  background: #f0f0ff;
 }
