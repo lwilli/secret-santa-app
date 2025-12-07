@@ -1,111 +1,81 @@
 let names = [];
 let groups = {};
 
-document.getElementById("bulkAddBtn").onclick = bulkAdd;
-document.getElementById("addGroupBtn").onclick = addGroup;
-document.getElementById("generateBtn").onclick = generate;
-
-function bulkAdd() {
-  const text = document.getElementById("bulkNames").value.trim();
-  if (!text) return;
-  const newNames = text.split(/\n+/).map(n => n.trim()).filter(n => n.length);
-  newNames.forEach(n => { if (!names.includes(n)) names.push(n); });
-  document.getElementById("bulkNames").value = "";
-  renderGroups();
+function addName() {
+  const name = document.getElementById("nameInput").value.trim();
+  if (!name || names.includes(name)) return;
+  names.push(name);
+  renderNames();
+  document.getElementById("nameInput").value = "";
 }
 
 function addGroup() {
-  const g = document.getElementById("newGroupName").value.trim();
-  if (!g || groups[g]) return;
-  groups[g] = [];
-  document.getElementById("newGroupName").value = "";
+  const group = document.getElementById("groupInput").value.trim();
+  if (!group || groups[group]) return;
+  groups[group] = [];
   renderGroups();
+  document.getElementById("groupInput").value = "";
 }
 
-function createUngrouped(parent) {
-  const box = document.createElement("div");
-  box.className = "group-members ungrouped";
-  box.dataset.group = "";
-  parent.prepend(box);
-  return box;
+function renderNames() {
+  const ul = document.getElementById("nameList");
+  ul.innerHTML = "";
+  names.forEach(n => {
+    const li = document.createElement("li");
+    li.textContent = n;
+    ul.appendChild(li);
+  });
 }
 
 function renderGroups() {
-  const container = document.getElementById("groups");
-  container.innerHTML = "";
-
-  let ungrouped = createUngrouped(container);
-
+  const ul = document.getElementById("groupList");
+  ul.innerHTML = "";
   Object.keys(groups).forEach(g => {
-    const div = document.createElement("div");
-    div.className = "group";
-
-    div.innerHTML = `
-      <h3>${g}
-        <button class="delete-group" data-group="${g}">Delete</button>
-      </h3>
-      <div class="group-members"
-           data-group="${g}"
-           ondragover="dragOver(event)"
-           ondrop="drop(event, '${g}')"></div>
-    `;
-
-    div.querySelector(".delete-group").onclick = () => {
-      delete groups[g];
+    const li = document.createElement("li");
+    li.textContent = g + ": " + (groups[g].join(", ") || "(empty)");
+    const select = document.createElement("select");
+    names.forEach(n => {
+      const opt = document.createElement("option");
+      opt.value = n;
+      opt.textContent = n;
+      select.appendChild(opt);
+    });
+    const btn = document.createElement("button");
+    btn.textContent = "Add member";
+    btn.onclick = () => {
+      const member = select.value;
+      if (!groups[g].includes(member)) groups[g].push(member);
       renderGroups();
     };
-
-    container.appendChild(div);
-  });
-
-  names.forEach(n => {
-    const span = document.createElement("span");
-    span.className = "member";
-    span.draggable = true;
-    span.textContent = n;
-    span.id = "member-" + n;
-    span.ondragstart = dragStart;
-
-    const group = Object.keys(groups).find(g => groups[g].includes(n));
-    const target = group
-      ? container.querySelector(`.group-members[data-group="${group}"]`)
-      : ungrouped;
-
-    target.appendChild(span);
+    li.appendChild(select);
+    li.appendChild(btn);
+    ul.appendChild(li);
   });
 }
 
-let dragItem = null;
-function dragStart(e) { dragItem = e.target.textContent; }
-function dragOver(e) { e.preventDefault(); }
-
-function drop(e, groupName) {
-  e.preventDefault();
-  Object.keys(groups).forEach(g => {
-    groups[g] = groups[g].filter(n => n !== dragItem);
-  });
-  if (groupName) groups[groupName].push(dragItem);
-  renderGroups();
-}
-
-function generate() {
+function generateMatches() {
   let receivers = [...names];
   let result = {};
 
-  const valid = (giver, receiver) => {
+  function isValidPair(giver, receiver) {
     if (giver === receiver) return false;
-    return !Object.values(groups).some(grp => grp.includes(giver) && grp.includes(receiver));
-  };
+    for (const g of Object.keys(groups)) {
+      if (groups[g].includes(giver) && groups[g].includes(receiver)) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   for (const giver of names) {
-    const options = receivers.filter(r => valid(giver, r));
-    if (!options.length) {
-      alert("No valid match exists. Adjust exclusion groups.");
+    const options = receivers.filter(r => isValidPair(giver, r));
+    if (options.length === 0) {
+      alert("No valid matching exists. Try adjusting groups.");
       return;
     }
-    const pick = options[Math.floor(Math.random() * options.length)];
-    result[giver] = pick;
-    receivers = receivers.filter(r => r !== pick);
+    const receiver = options[Math.floor(Math.random() * options.length)];
+    result[giver] = receiver;
+    receivers = receivers.filter(r => r !== receiver);
   }
 
   const ul = document.getElementById("results");
